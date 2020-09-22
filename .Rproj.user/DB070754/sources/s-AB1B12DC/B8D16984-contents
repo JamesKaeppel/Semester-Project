@@ -1,0 +1,69 @@
+---
+title: "Semester Project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#This code installs tidyverse package
+install.packages("tidyverse")
+#This line loads tidyverse
+library(tidyverse)
+#This code installs real estate data
+library(readxl)
+housing_project <- read_excel("housing_project.xlsx")
+#This code allows you to view the housing_projet dataset
+View(housing_project)
+```
+## Manipulating data
+```{r}
+#Here we can see the average dollar amount a home buyer will pay per square foot
+housing_project %>% 
+  summarise(
+    avg_price_sqft = mean(price / sqft_living))
+
+#This shows us the average price of a home in each of the five condition states
+housing_project %>%
+  group_by(condition) %>% 
+  summarise(avg_price_condition = mean(price)) 
+
+#average price per floor
+housing_project %>%
+  group_by(floors) %>% 
+  summarise(avg_price_floor = mean(price)) 
+
+#Here we see the affects of sqaure foot on price
+ggplot(housing_project) +
+  geom_point(mapping = aes(y = price, x = sqft_living))
+
+#This code shows the affects of conditon on price
+ggplot(housing_project) +
+  geom_point(mapping = aes(x = condition, y = price))
+
+ggplot(housing_project) +
+  geom_point(mapping = aes(x = yr_built, y = price))
+```
+
+## Summarising Data
+```{r}
+#This code shows us several summations of the price variable
+housing_project %>%
+  summarise(avg_price = mean(price),
+  median_price = median(price),
+  max_price = max(price),
+  min_price = min(price),
+  stdv_price = sd(price))
+
+#This code filters out outlighter prices
+filter(housing_project, price <= 3000000 | 10000 <= price)
+
+housing_data1 <- filter(housing_project, price >= 3000000) %>% 
+  summarise(avg_price = mean(price),
+  median_price = median(price),
+  max_price = max(price),
+  min_price = min(price),
+  stdv_price = sd(price))
+```
