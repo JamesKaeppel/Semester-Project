@@ -1,0 +1,601 @@
+---
+title: 'Intro to RStudio: In-class Practice 1'
+author: "Enter your full name"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, cache = F}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(error = TRUE)
+```
+
+## Rstudio Practice: [Enter your zID between parentesis]
+
+### Warming up:
+
+####Install packages( don’t run, just write code after # sign) 
+```{r, task1}
+#write the code necessary to install the tidyverse package 
+install.packages("tidyverse")
+#write the code necessary to install nycflights13 package
+install.packages("nycflights13")
+
+```
+
+####Load libraries 
+```{r, task2}
+#load the tidyverse package
+library(tidyverse)
+#load the nycflights13 package
+library(nycflights13)
+#print the flights dataset to inspect it in the console
+print(flights)
+#print the flights dataset to inspect the full dataframe in a new window
+view(flights)
+```
+
+
+### Basic manipulations: 
+```{r, task3}
+#using the flights dataset, select all columns that contain the word "dep" in their column name
+select(flights, contains("dep"))
+#assign the above function to a dataframe named "flights_dep"
+flights_dep <- select(flights, contains("dep"))
+#using the flights dataset, select only the last five columns
+select(flights, 15:19)
+#assign the above function to a dataframe named "flights_duration"
+flights_duration <- select(flights, 15:19)
+#using the flights dataset, select all comuns that start with the word "arr"
+select(flights, contains("ar"))
+```
+
+```{r, task4}
+
+#filter the flights dataframe, make sure only the flights with arrival delay bigger or equal to 30 minutes are available.
+filter(flights, arr_delay >= 30)
+#filter the flights dataframe, make sure only the flights with arrival departure time before 11 am (1100) or with scheduled arrival time after 10 am (1000) are available.
+filter(flights, arr_time < 1100 | sched_arr_time > 1000)
+
+#filter the flights dataframe, make sure only the flights in november or december are available.
+filter(flights, month == 11 | month == 12)
+
+#filter the flights dataframe, make sure only the flights to O'Hare (ORD) and on the 23rd day of the month are available.
+filter(flights, day == "23", dest == "ORD")
+```
+
+
+```{r, task5}
+#arrange the flights dataframe based on their arrival time in increasing order.
+arrange(flights, arr_time)
+#arrange the flights dataframe based on the flight arrival delays, make sure the arrival delays are reported in decreasing order.
+arrange(flights, desc(arr_delay))
+#arrange the flights dataframe based on the flight air time. Make sure the air time is reported in decreasing order
+arrange(flights, desc(air_time))
+```
+
+```{r, task6}
+#using the flights dataframe columns, compute a variable called delay_time. This variable is the result of the difference between the arrival time and scheduled arrival time.
+transmute(flights, delay_time = arr_time - sched_arr_time)
+#using the flights dataframe columns, compute a variable called flight_time. This variable is the result of the sum between the departure delay and air time.
+transmute(flights, flight_time = dep_delay + air_time)
+```
+
+```{r, task7}
+#using the flights dataframe report how many flights are completed at each destination.
+Flight_Count <- flights %>% 
+  group_by(dest) %>% 
+  count(dest)
+#rearrenge the above results by organizing your data from the destination that has the largest number of flights to the one that has the smallest.
+arrange(Flight_Count, desc(n))
+```
+
+
+### Tidy datasets: 
+```{r, task8}
+#run the below code:
+untidy_data1 <- tribble(
+  ~car_type, ~toyota, ~volvo, ~mpg,
+  "sedan", 15000, 35000,"350/10",
+  "suv", 22000, 50000,"240/12" 
+)
+```
+
+```{r, task9}
+#print untidy_data1 dataframe in console.
+print(untidy_data1)
+#gather the toyota and volvo columns into a car_model column. Use price as the value.
+unite(untidy_data1, car_model, toyota, volvo, sep = )
+#separate the mpg column into a car_range and car_tank columns. Make sure the data type of this new column is correct. 
+untidy_data1 %>% 
+  separate(mpg, into = c("car_range", "car_tank"))
+```
+
+```{r, task10}
+#run the below code:
+untidy_data2 <- tribble(
+  ~first_name, ~last_name, ~season, ~stats, ~total, 
+  "john", "love" ,2018 ,"APG", 10,
+  "john", "love",2018,"PPG", 30,
+  "john", "love" ,2019 ,"APG", 5,
+  "john", "love",2019,"PPG", 40
+)
+```
+
+```{r, task11}
+#print the untidy_data2 dataframe in console.
+print(untidy_data2)
+#spread the stats column and use the total column for values. Save the dataframe as tidy_data2.
+untidy_data2 %>% 
+  pivot_wider(names_from = stats, values_from = total)
+#unite the first_name and last_name columns in the tidy_data2 dataframe into a full_name column. Make sure that a space separate the values inside this new column.
+untidy_data2 %>% 
+  unite(full_name, first_name, last_name, sep = "_")
+```
+
+###Pipes:
+```{r, task12}
+#use the flights dataframe to report the mean, median, min and max of the arrival time variable. Name the columns respectively: avg_at; median_at; min_at and max_at. Remove the NAs if required.
+flights %>%
+  summarise(
+  avg_at = mean(arr_time, na.rm = TRUE),
+  median_at = median(arr_time, na.rm = TRUE),
+  min_at = min(arr_time, na.rm = TRUE),
+  max_at = max(arr_time, na.rm = TRUE))
+```
+
+```{r, task13}
+#use the flights dataframe to report the mean, median, min and max of the departure delay variable per each destination. Name the columns respectively: avg_dd_dest; median_dd_dest; min_dd_dest and max_dd_dest. Remove the NAs if required.
+flights %>%
+  group_by(dest) %>% 
+  summarise(
+  avg_dd_dest = mean(dep_delay, na.rm = TRUE),
+  median_dd_dest = median(dep_delay, na.rm = TRUE),
+  min_dd_dest = min(dep_delay, na.rm = TRUE),
+  max_dd_dest = max(dep_delay, na.rm = TRUE))
+```
+
+```{r, task14}
+#use the flights dataframe to report the mean, standard deviation, min and max of the arrival time variable per each carrier. Name the columns respectively: avg_at_car; sd_at_car; min_at_car and max_at_car. Make sure to also report the number of flights for each month. Remove the NAs if required.
+flights %>%
+  group_by(carrier) %>% 
+  summarise(
+    avg_at_car = mean(arr_time, na.rm = TRUE),
+    sd_at_car = sd(arr_time, na.rm = TRUE), 
+    min_at_car = min(arr_time, na.rm = TRUE),
+    max_at_car = max(arr_time, na.rm = TRUE),
+    flight_count = n())
+  
+```
+
+```{r, task15}
+#use the flights dataframe to report the first and last scheduled departure time per each tail number Name the columns respectively: first_sdt_tn and last_sdt_tn. Make sure to report only the flights that have a first flight after 10am (1000). Remove the NAs if required.
+flights %>% 
+  filter(dep_time > 1000)%>% 
+  group_by(tailnum) %>% 
+  summarise(
+    first_sdt_tn = first(dep_time),
+    last_sdt_tn = last(dep_time))
+```
+
+```{r, task16}
+#use the flights dataframe to report the median and average of the arrival delay variable per each origin. Name the columns respectively: median_ad_org and avg_ad_org. Compute a new variable, name the variable diff_ad. The diff_at variable is equal to the difference between median_ad_org and avg_ad_org. Remove the NAs if required.
+flights %>% 
+  group_by(origin) %>% 
+  summarise(
+    median_ad_org = median(arr_delay, na.rm = TRUE),
+    avg_ad_org = mean(arr_delay, na.rm = TRUE),
+    diff_ad = (avg_ad_org - median_ad_org))
+  
+```
+
+###Charts
+```{r, task17}
+#run the below code
+flights_july <- flights %>% 
+                  filter(month==7)        
+
+#use the flights_july dataframe to create a scatterplot between the arrival delay and distance variables.
+ggplot(data = flights_july) +
+  geom_point(mapping = aes(x = arr_delay, y = distance))
+```
+
+```{r, task18}
+#use the flights_july dataframe to create a scatterplot between the air time and distance variables. Make sure to report the distance on the Y and the air time on the X axis. 
+ggplot(data = flights_july) + 
+  geom_point(mapping = aes(x = air_time, y = distance))
+```
+
+```{r, task19}
+#use the flights_july dataframe to create a scatterplot between the air time and distance variables. Make sure to report the distance on the Y and the air time on the X axis. Assign a different color to the origin variable.
+ggplot(data = flights_july) + 
+  geom_point(mapping = aes(x = air_time, y = distance, color = origin))
+```
+
+```{r, task20}
+#run the below code
+flights_july2 <- flights_july %>% 
+                  filter(arr_delay>500) %>% 
+                  mutate(arr_delay_plot =as_factor(arr_delay))
+
+#use the flights_july2 dataframe to create a scatterplot between the air time and distance variables. Make sure to report the air time on the Y and the distance on the X axis. Assign a different size to each value of the arr_delay_plot variable. Finally assign also a different color to each value of the arr_delay_plot variable.
+ggplot(data = flights_july2) + 
+  geom_point(mapping = aes(x = distance, y = air_time, size = distance, color = distance ))
+```
+###Challenge question
+```{r, challenge task}
+#use the flights dataframe to report the mean, median and standard deviation of the air time variable per each destination. Name them respectively: avg_at_dest;  median_at_dest; sd_at_dest; Make sure to also report the number of flights for each destination. Remove the NA if required. Make sure to report only the destinations with more than 7000 flights. Compute a new variable named diff_at_dest that is equal to the difference between the median air time and the average air time. Make sure to reorganize your dataframe according to the diff_at_dest variable in decreasing order. Which is the destination with the highest diff_at_dest?
+flights %>% 
+  group_by(dest) %>% 
+  summarise(avg_dest = mean(air_time, na.rm = TRUE),
+            median_at_dest = median(air_time, na.rm = TRUE),
+            sd_at_dest = sd(air_time, na.rm = TRUE))
+  
+
+
+flights %>% 
+  filter(dest > 7000)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r, System Check: do not remove}
+Sys.getenv("LOGNAME")
+```
